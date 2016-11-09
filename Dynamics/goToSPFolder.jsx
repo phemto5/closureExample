@@ -1,7 +1,7 @@
-import React from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom';
 import $ from 'jquery';
-import { Button } from 'office-ui-fabric-react/lib/Button';
+import { Button, ButtonType, IButtonProps, Label } from 'office-ui-fabric-react/lib/index';
 
 require('./goToSPFolder.html');
 require('../node_modules/office-ui-fabric-react/dist/css/fabric.css');
@@ -10,11 +10,25 @@ var gotoSPFolder = window.gotoSPFolder || {};
 gotoSPFolder.WebAPI = gotoSPFolder.WebAPI || {};
 
 getEntity(getURL()).then((data) => {
-    const GoButton = () => (<div>
-        <Button onClick={goToEntity} >SharePoint Folders for {data.new_name}</Button>
-    </div>);
+    class GoButton extends React.Component<IButtonProps, {}> {
+        constructor() {
+            super();
+        }
+        render() {
+            return (
+                <Button
+                    onClick={goToEntity}
+                    buttonType={ButtonType.compound}
+                    description={data.new_name}
+                    icon='Folder'>
+                    Go To SharePoint Folders
+                </Button>
+            );
+        }
+    }
 
-    ReactDOM.render(
+
+    var goButton = ReactDOM.render(
         <GoButton />,
         document.getElementById('root')
     );
@@ -30,7 +44,7 @@ function goToEntity() {
         })
         .then((data) => {
             parts.account = data;
-            parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + parts.account.name + '/' + parts.query.typename + '/' + parts.entity.new_name;
+            parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + parts.account.name + '/' + parts.query.typename + '/' + parts.entity.new_name + '&ProjectID=' + parts.entity.new_projectid;
             window.open(parts.folderURL);
         })
 }
