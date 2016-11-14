@@ -121,13 +121,19 @@
 	        window.open(parts.folderURL);
 	    });
 	}
+
 	function queryStringtoObject(search) {
 	    var p = {};
-	    var q = search.substring(1);
+	    var q = search.replace('?', '');
 	    var vars = q.split('&');
 	    vars.forEach(function (element) {
-	        var name;
-	        p[element.split('=')[0]] = element.split('=')[1];
+	        var name = element.split('=')[0];
+	        var value = decodeURI(element.split('=')[1]);
+	        if (value.indexOf('?') > 0) {
+	            queryStringtoObject(value);
+	        } else {
+	            p[name] = value;
+	        }
 	    }, this);
 
 	    return p;
@@ -135,6 +141,7 @@
 	function getURL() {
 	    var q = queryStringtoObject(window.location.search);
 	    var win = window.location;
+	    var url = '';
 	    switch (q.typename) {
 	        case 'new_projectactivities':
 	            {
@@ -154,7 +161,8 @@
 	        default:
 	            break;
 	    }
-	    return win.protocol + "//" + win.hostname + "/api/data/v8.1/" + q.typename + "(" + q.id.replace("%7b", "").replace("%7d", "") + ")";
+	    url = win.protocol + "//" + win.hostname + "/api/data/v8.1/" + q.typename + "(" + q.id.replace("{", "").replace("}", "") + ")";
+	    return url;
 	}
 
 	function getEntity(_url) {
