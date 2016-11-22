@@ -14,16 +14,16 @@ class GoButton extends React.Component<IButtonProps, {}> {
     constructor(props) {
         super(props);
         this.state = {
-            description:'',
-            disabled : false
+            description: '',
+            disabled: false
         }
         this.updateDescription = this.updateDescription.bind(this);
     }
-    updateDescription(desc){
-        this.setState({description:desc});
+    updateDescription(desc) {
+        this.setState({ description: desc });
     }
-    updateDisabled(dis){
-        this.setState({disabled: dis});
+    updateDisabled(dis) {
+        this.setState({ disabled: dis });
     }
     render() {
         return (
@@ -31,7 +31,7 @@ class GoButton extends React.Component<IButtonProps, {}> {
                 onClick={goToEntity}
                 buttonType={ButtonType.compound}
                 description={this.state.description}
-                disabled = {this.state.disabled}
+                disabled={this.state.disabled}
                 icon='Folder'>
                 Go To SharePoint Folders
                 </Button>
@@ -42,26 +42,26 @@ class GoButton extends React.Component<IButtonProps, {}> {
 $(document).ready(() => {
 
     goButton = ReactDOM.render(
-    <GoButton />,
-    document.getElementById('root')
+        <GoButton />,
+        document.getElementById('root')
     );
 
     getEntity(getURL()).then((data) => {
-        if (data['@odata.etag']){
-        goButton.updateDescription(data.new_name);
-        goButton.updateDisabled(false);
-        // console.log('GotData')
-        // console.log(data);
-        }else{
-        goButton.updateDescription('');
-        goButton.updateDisabled(true);
-        console.log('GotNoData')
+        if (data['@odata.etag']) {
+            goButton.updateDescription(data.new_name);
+            goButton.updateDisabled(false);
+            // console.log('GotData')
+            // console.log(data);
+        } else {
+            goButton.updateDescription('Must Refresh Page after saving to get to folders.');
+            goButton.updateDisabled(true);
+            console.log('GotNoData')
         }
-    
+
     })
-    .fail(() => {
-        console.log('Failed ajax;')
-    });
+        .fail(() => {
+            console.log('Failed ajax;')
+        });
 }
 );
 

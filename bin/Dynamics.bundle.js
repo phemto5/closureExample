@@ -135,7 +135,7 @@
 	            // console.log('GotData')
 	            // console.log(data);
 	        } else {
-	            goButton.updateDescription('');
+	            goButton.updateDescription('Must Refresh Page after saving to get to folders.');
 	            goButton.updateDisabled(true);
 	            console.log('GotNoData');
 	        }
