@@ -48,7 +48,7 @@ entityFolderExists(params.restUrl)
         // console.log(data);
         params.iterator = 5;
         buildFolderTree(params);
-    })
+    });
 
 function queryStringtoObject(search) {
     var p = {};
@@ -57,7 +57,7 @@ function queryStringtoObject(search) {
     vars.forEach(function (element) {
         var name = element.split('=')[0];
         var value = decodeURI(element.split('=')[1]);
-        p[name] = value;
+        p[name] = value.replace('.', '');
     }, this);
 
     return p;

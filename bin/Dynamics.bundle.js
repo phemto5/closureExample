@@ -77,36 +77,71 @@
 
 	var gotoSPFolder = window.gotoSPFolder || {};
 	gotoSPFolder.WebAPI = gotoSPFolder.WebAPI || {};
+	var goButton;
 
-	getEntity(getURL()).then(function (data) {
-	    var GoButton = function (_React$Component) {
-	        _inherits(GoButton, _React$Component);
+	var GoButton = function (_React$Component) {
+	    _inherits(GoButton, _React$Component);
 
-	        function GoButton() {
-	            _classCallCheck(this, GoButton);
+	    function GoButton(props) {
+	        _classCallCheck(this, GoButton);
 
-	            return _possibleConstructorReturn(this, (GoButton.__proto__ || Object.getPrototypeOf(GoButton)).call(this));
+	        var _this = _possibleConstructorReturn(this, (GoButton.__proto__ || Object.getPrototypeOf(GoButton)).call(this, props));
+
+	        _this.state = {
+	            description: '',
+	            disabled: false
+	        };
+	        _this.updateDescription = _this.updateDescription.bind(_this);
+	        return _this;
+	    }
+
+	    _createClass(GoButton, [{
+	        key: 'updateDescription',
+	        value: function updateDescription(desc) {
+	            this.setState({ description: desc });
 	        }
+	    }, {
+	        key: 'updateDisabled',
+	        value: function updateDisabled(dis) {
+	            this.setState({ disabled: dis });
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            return React.createElement(
+	                _index.Button,
+	                {
+	                    onClick: goToEntity,
+	                    buttonType: _index.ButtonType.compound,
+	                    description: this.state.description,
+	                    disabled: this.state.disabled,
+	                    icon: 'Folder' },
+	                'Go To SharePoint Folders'
+	            );
+	        }
+	    }]);
 
-	        _createClass(GoButton, [{
-	            key: 'render',
-	            value: function render() {
-	                return React.createElement(
-	                    _index.Button,
-	                    {
-	                        onClick: goToEntity,
-	                        buttonType: _index.ButtonType.compound,
-	                        description: data.new_name,
-	                        icon: 'Folder' },
-	                    'Go To SharePoint Folders'
-	                );
-	            }
-	        }]);
+	    return GoButton;
+	}(React.Component);
 
-	        return GoButton;
-	    }(React.Component);
+	(0, _jquery2.default)(document).ready(function () {
 
-	    var goButton = _reactDom2.default.render(React.createElement(GoButton, null), document.getElementById('root'));
+	    goButton = _reactDom2.default.render(React.createElement(GoButton, null), document.getElementById('root'));
+
+	    getEntity(getURL()).then(function (data) {
+	        if (data['@odata.etag']) {
+	            goButton.updateDescription(data.new_name);
+	            goButton.updateDisabled(false);
+	            // console.log('GotData')
+	            // console.log(data);
+	        } else {
+	            goButton.updateDescription('');
+	            goButton.updateDisabled(true);
+	            console.log('GotNoData');
+	        }
+	    }).fail(function () {
+	        console.log('Failed ajax;');
+	    });
 	});
 
 	function goToEntity() {
@@ -115,16 +150,20 @@
 	    getEntity(getURL()).then(function (data) {
 	        parts.entity = data;
 	        return getAccount(data);
+	    }).fail(function (err) {
+	        console.log('AccountNotFound');
 	    }).then(function (data) {
 	        parts.account = data;
-	        parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + parts.account.name + '/' + parts.query.typename + '/' + parts.entity.new_name + '&ProjectID=' + parts.entity.new_projectid;
+	        parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + sanatizePunctuation(parts.account.name) + '/' + parts.query.typename + '/' + sanatizePunctuation(parts.entity.new_name) + '&ProjectID=' + parts.entity.new_projectid;
 	        window.open(parts.folderURL);
+	    }).fail(function (err) {
+	        console.log('foldernnotfound');
 	    });
 	}
 
 	function queryStringtoObject(search) {
 	    var p = {};
-	    var q = search.replace('?', '');
+	    var q = decodeURIComponent(search).replace('?', '');
 	    var vars = q.split('&');
 	    vars.forEach(function (element) {
 	        var name = element.split('=')[0];
@@ -139,33 +178,39 @@
 	    return p;
 	}
 	function getURL() {
-	    var q = queryStringtoObject(window.location.search);
-	    var win = window.location;
 	    var url = '';
-	    switch (q.typename) {
-	        case 'new_projectactivities':
-	            {
-	                q.typename = 'new_projectactivitieses';
+	    var q = queryStringtoObject(window.location.search);
+	    if (q.typename) {
+	        var win = window.location;
+	        switch (q.typename) {
+	            case 'new_projectactivities':
+	                {
+	                    q.typename = 'new_projectactivitieses';
+	                    break;
+	                }
+	            case 'account':
+	                {
+	                    q.typename = 'accounts';
+	                    break;
+	                }
+	            case 'opportunity':
+	                {
+	                    q.typename = 'opportunities';
+	                    break;
+	                }
+	            default:
 	                break;
-	            }
-	        case 'account':
-	            {
-	                q.typename = 'accounts';
-	                break;
-	            }
-	        case 'opportunity':
-	            {
-	                q.typename = 'opportunities';
-	                break;
-	            }
-	        default:
-	            break;
+	        }
+	        url = win.protocol + "//" + win.hostname + "/api/data/v8.1/" + q.typename + "(" + q.id.replace("{", "").replace("}", "") + ")";
+	    } else {
+	        console.log('TypeNotFound');
 	    }
-	    url = win.protocol + "//" + win.hostname + "/api/data/v8.1/" + q.typename + "(" + q.id.replace("{", "").replace("}", "") + ")";
 	    return url;
 	}
 
-	function getEntity(_url) {
+	function getEntity() {
+	    var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getURL();
+
 	    return _jquery2.default.ajax({
 	        url: _url,
 	        method: 'GET',
@@ -180,6 +225,11 @@
 	        method: 'GET',
 	        dataType: 'json'
 	    });
+	}
+
+	function sanatizePunctuation(str) {
+	    var t = str.replace(/\//g, '-').replace(/\</g, '-').replace(/\>/g, '-').replace(/\./g, '-').replace(/\?/g, '-').replace(/\\/g, '-').replace(/\,/g, '-').replace(/\;/g, '-').replace(/\:/g, '-').replace(/\|/g, '-').replace(/\!/g, '-').replace(/\@/g, '-').replace(/\#/g, '-').replace(/\$/g, '-').replace(/\%/g, '-').replace(/\^/g, '-').replace(/\&/g, '-').replace(/\*/g, '-').replace(/\_/g, '-').replace(/\+/g, '-').replace(/\=/g, '-');
+	    return t;
 	}
 
 /***/ },

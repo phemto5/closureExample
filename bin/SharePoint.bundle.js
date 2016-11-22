@@ -133,7 +133,7 @@
 	    vars.forEach(function (element) {
 	        var name = element.split('=')[0];
 	        var value = decodeURI(element.split('=')[1]);
-	        p[name] = value;
+	        p[name] = value.replace('.', '');
 	    }, this);
 
 	    return p;
