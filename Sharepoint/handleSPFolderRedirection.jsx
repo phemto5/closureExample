@@ -101,6 +101,46 @@ function createEntityFolder(_folder) {
     });
 }
 
+function createEntityFiles(folder, file) {
+    let _url = 'http://sharepoint.wagstaff.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
+    return $.ajax({
+        method: 'POST',
+        url: _url,
+        data: _data,
+        headers: {
+            'accept': "application/json;odata=verbose",
+            'content-type': "application/json;odata=verbose",
+            'X-RequestDigest': $("#__REQUESTDIGEST").val()
+        }
+    });
+}
+function copyEntityFiles(folder, file) {
+    var originalFile = 'http://sharepoint.wagstaff.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/Document Templates/SOP.one\')/$value';
+    $.ajax({
+        method: 'GET',
+        url: originalFile,
+        datatype: 'json',
+        headers: {
+            'accept': "application/json;odata=verbose",
+            'content-type': "application/json;odata=verbose",
+            'X-RequestDigest': $("#__REQUESTDIGEST").val()
+        }
+    }).done((data) => {
+        let _url = 'http://sharepoint.wagstaff.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
+        return $.ajax({
+            method: 'POST',
+            url: _url,
+            data: data,
+            headers: {
+                'accept': "application/json;odata=verbose",
+                'content-type': "application/json;odata=verbose",
+                'X-RequestDigest': $("#__REQUESTDIGEST").val()
+            }
+        });
+    });
+
+}
+
 function buildFolderTree(params) {
     processFolder(params);
 
@@ -128,12 +168,26 @@ function buildFolderTree(params) {
         if (params.iterator <= params.folderArr.length) {
             processFolder(params);
         } else {
-            window.location.href = params.folderUrl;
+            //Last Folders
+            let promises = [];
+            promises.push(createEntityFolder(params.folder + '/Project Files'));
+            promises.push(createEntityFolder(params.folder + '/Time Sheets-Commissioning Reports'));
+
+            promises.push(createEntityFiles(params.folder, '/Do Not Delete.Save'));
+            promises.push(createEntityFiles(params.folder, '/Notebook-2016 Spare Parts.onetoc2'));
+            promises.push(copyEntityFiles(params.folder, '/SOP - PO 70 - Gas Meter and Casting Rings.one'));
+
+            $.when.apply($, promises).done(() => {
+                window.location.href = params.folderUrl;
+            });
         }
     }
 }
 
-
 function createRestUrl(folderString) {
     return 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/Web/GetFolderByServerRelativeUrl(\'' + folderString + '\')';
+}
+
+function createFles() {
+
 }
