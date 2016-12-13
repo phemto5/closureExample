@@ -78,7 +78,7 @@ function goToEntity() {
         })
         .then((data) => {
             parts.account = data;
-            parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + sanatizePunctuation(parts.account.name) + '/' + parts.query.typename + '/' + sanatizePunctuation(parts.entity.new_name) + '&ProjectID=' + parts.entity.new_projectid;
+            parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + sanatizePunctuation(parts.account.name) + '/' + parts.query.typename + '/' + sanatizePunctuation(parts.entity.new_name) + '&ProjectID=' + new_projectactivitiesid;
             window.open(parts.folderURL);
         }).fail((err) => {
             console.log('foldernnotfound');
