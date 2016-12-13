@@ -102,11 +102,12 @@ function createEntityFolder(_folder) {
 }
 
 function createEntityFiles(folder, file) {
-    let _url = 'http://sharepoint.wagstaff.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
+    spinner.updateMessage('Creating file :' + folder + '/' + file);
+    let _url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
     return $.ajax({
         method: 'POST',
         url: _url,
-        data: _data,
+        data: 'Do Not Delete This File',
         headers: {
             'accept': "application/json;odata=verbose",
             'content-type': "application/json;odata=verbose",
@@ -115,9 +116,10 @@ function createEntityFiles(folder, file) {
     });
 }
 function copyEntityFiles(folder, file) {
-    var originalFile = 'http://sharepoint.wagstaff.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/Document Templates/SOP.one\')/$value';
-    $.ajax({
-        method: 'GET',
+    spinner.updateMessage('Coping file :' + folder + '/' + file);
+    var originalFile = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/sites/CRM/Document Templates/SOP.one\')/copyto(strnewurl=\'' + folder + '/' + file + '\',boverwrite=false)';
+    return $.ajax({
+        method: 'POST',
         url: originalFile,
         datatype: 'json',
         headers: {
@@ -125,20 +127,20 @@ function copyEntityFiles(folder, file) {
             'content-type': "application/json;odata=verbose",
             'X-RequestDigest': $("#__REQUESTDIGEST").val()
         }
-    }).done((data) => {
-        let _url = 'http://sharepoint.wagstaff.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
-        return $.ajax({
-            method: 'POST',
-            url: _url,
-            data: data,
-            headers: {
-                'accept': "application/json;odata=verbose",
-                'content-type': "application/json;odata=verbose",
-                'X-RequestDigest': $("#__REQUESTDIGEST").val()
-            }
-        });
-    });
-
+    })
+    // .then((data) => {
+    //     let _url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
+    //     return $.ajax({
+    //         method: 'POST',
+    //         url: _url,
+    //         data: data,
+    //         headers: {
+    //             'accept': "application/json;odata=verbose",
+    //             'content-type': "application/json;odata=verbose",
+    //             'X-RequestDigest': $("#__REQUESTDIGEST").val()
+    //         }
+    //     });
+    // });
 }
 
 function buildFolderTree(params) {
@@ -168,18 +170,25 @@ function buildFolderTree(params) {
         if (params.iterator <= params.folderArr.length) {
             processFolder(params);
         } else {
-            //Last Folders
-            let promises = [];
-            promises.push(createEntityFolder(params.folder + '/Project Files'));
-            promises.push(createEntityFolder(params.folder + '/Time Sheets-Commissioning Reports'));
-
-            promises.push(createEntityFiles(params.folder, '/Do Not Delete.Save'));
-            promises.push(createEntityFiles(params.folder, '/Notebook-2016 Spare Parts.onetoc2'));
-            promises.push(copyEntityFiles(params.folder, '/SOP - PO 70 - Gas Meter and Casting Rings.one'));
-
-            $.when.apply($, promises).done(() => {
-                window.location.href = params.folderUrl;
-            });
+            // Last Folders
+            createEntityFolder(params.folder + '/Project Files')
+                .then((data) => {
+                    return createEntityFolder(params.folder + '/Time Sheets-Commissioning Reports')
+                })
+                .then((data) => {
+                    return createEntityFiles(params.folder, 'Do_Not_Delete.Save')
+                })
+                .then((data) => {
+                    return createEntityFiles(params.folder, 'Notebook-' + params.folderArr[6] + '.onetoc2')
+                })
+                .then((data) => {
+                    return copyEntityFiles(params.folder, 'SOP-' + params.folderArr[6] + '.one')
+                })
+                .then((data) => {
+                    // console.log('Go To Folder now');
+                    window.location.href = params.folderUrl;
+                })
+            // window.location.href = params.folderUrl;
         }
     }
 }
