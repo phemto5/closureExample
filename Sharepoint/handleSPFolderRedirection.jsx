@@ -120,10 +120,10 @@ function copyEntityFiles(folder, file) {
     var originalFile = '';
     switch (file.split('-')[0]) {
         case 'Notebook':
-            originalFile = 'SOP.one';
+            originalFile = 'TemplateNotebook.onetoc2';
             break;
         case 'SOP':
-            originalFile = 'TemplateNotebook.onetoc2';
+            originalFile = 'SOP.one';
             break;
 
         default:
