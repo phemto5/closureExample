@@ -117,10 +117,23 @@ function createEntityFiles(folder, file) {
 }
 function copyEntityFiles(folder, file) {
     spinner.updateMessage('Coping file :' + folder + '/' + file);
-    var originalFile = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/sites/CRM/Document Templates/SOP.one\')/copyto(strnewurl=\'' + folder + '/' + file + '\',boverwrite=false)';
+    var originalFile = '';
+    switch (file.split('-')[0]) {
+        case 'Notebook':
+            originalFile = 'SOP.one';
+            break;
+        case 'SOP':
+            originalFile = 'TemplateNotebook.onetoc2';
+            break;
+
+        default:
+            break;
+    }
+    var url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/sites/CRM/Document Templates/' + originalFile + '\')/copyto(strnewurl=\'' + folder + '/' + file + '\',boverwrite=false)';
+
     return $.ajax({
         method: 'POST',
-        url: originalFile,
+        url: url,
         datatype: 'json',
         headers: {
             'accept': "application/json;odata=verbose",
@@ -179,7 +192,7 @@ function buildFolderTree(params) {
                     return createEntityFiles(params.folder, 'Do_Not_Delete.Save')
                 })
                 .then((data) => {
-                    return createEntityFiles(params.folder, 'Notebook-' + params.folderArr[6] + '.onetoc2')
+                    return copyEntityFiles(params.folder, 'Notebook-' + params.folderArr[6] + '.onetoc2')
                 })
                 .then((data) => {
                     return copyEntityFiles(params.folder, 'SOP-' + params.folderArr[6] + '.one')
