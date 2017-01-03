@@ -4,7 +4,6 @@ import $ from 'jquery';
 import { Spinner, SpinnerType } from 'office-ui-fabric-react/lib/Spinner'
 
 require('./handleSPFolder.html');
-// var message = "Redirecting to Folder"
 var gotoSPFolder = window.gotoSPFolder || {};
 gotoSPFolder.WebAPI = gotoSPFolder.WebAPI || {};
 var params = queryStringtoObject(window.location.search);
@@ -38,14 +37,10 @@ var spinner = ReactDOM.render(
 entityFolderExists(params.restUrl)
     .done((data) => {
         spinner.updateMessage("Folder Found");
-        // console.log('Success Path');
-        // console.log(data);
         window.location.href = params.folderUrl;
     })
     .fail((data) => {
         spinner.updateMessage("Folder Not Found");
-        // console.log('Error Path');
-        // console.log(data);
         params.iterator = 5;
         buildFolderTree(params);
     });
@@ -59,12 +54,9 @@ function queryStringtoObject(search) {
         var value = decodeURI(element.split('=')[1]);
         p[name] = value.replace('.', '');
     }, this);
-
     return p;
 }
 function entityFolderExists(_url) {
-    // console.log('lookging for Folder');
-    // console.log(_url);
     spinner.updateMessage('Checking location :' + _url)
     return $.ajax(
         {
@@ -78,8 +70,6 @@ function entityFolderExists(_url) {
     )
 }
 function createEntityFolder(_folder) {
-    // console.log('Creating Folder')
-    // console.log(_folder);
     spinner.updateMessage('Creating location :' + _folder);
     var _url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/Web/folders';
     var _data = JSON.stringify({
@@ -97,7 +87,6 @@ function createEntityFolder(_folder) {
             'content-type': "application/json;odata=verbose",
             'X-RequestDigest': $("#__REQUESTDIGEST").val()
         }
-
     });
 }
 
@@ -116,7 +105,7 @@ function createEntityFiles(folder, file) {
     });
 }
 function copyEntityFiles(folder, file) {
-    spinner.updateMessage('Coping file :' + folder + '/' + file);
+    spinner.updateMessage('Coping file :' + decodeURIComponent(folder) + '/' + file);
     var originalFile = '';
     switch (file.split('-')[0]) {
         case 'Notebook':
@@ -125,7 +114,6 @@ function copyEntityFiles(folder, file) {
         case 'SOP':
             originalFile = 'SOP.one';
             break;
-
         default:
             break;
     }
@@ -140,20 +128,7 @@ function copyEntityFiles(folder, file) {
             'content-type': "application/json;odata=verbose",
             'X-RequestDigest': $("#__REQUESTDIGEST").val()
         }
-    })
-    // .then((data) => {
-    //     let _url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
-    //     return $.ajax({
-    //         method: 'POST',
-    //         url: _url,
-    //         data: data,
-    //         headers: {
-    //             'accept': "application/json;odata=verbose",
-    //             'content-type': "application/json;odata=verbose",
-    //             'X-RequestDigest': $("#__REQUESTDIGEST").val()
-    //         }
-    //     });
-    // });
+    });
 }
 
 function buildFolderTree(params) {
@@ -173,7 +148,6 @@ function buildFolderTree(params) {
                         nextFolder(params);
                     })
                     .fail((err) => {
-                        // console.log('Failed to create folder.')
                         spinner.updateMessage('Epic Fail Could not create folder contact IT Support');
                     })
             });
@@ -198,18 +172,12 @@ function buildFolderTree(params) {
                     return copyEntityFiles(params.folder, 'SOP-' + params.folderArr[6] + '.one')
                 })
                 .then((data) => {
-                    // console.log('Go To Folder now');
                     window.location.href = params.folderUrl;
                 })
-            // window.location.href = params.folderUrl;
         }
     }
 }
 
 function createRestUrl(folderString) {
     return 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/Web/GetFolderByServerRelativeUrl(\'' + folderString + '\')';
-}
-
-function createFles() {
-
 }
