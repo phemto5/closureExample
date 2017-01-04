@@ -106,19 +106,21 @@ function createEntityFiles(folder, file) {
 }
 function copyEntityFiles(folder, file) {
     spinner.updateMessage('Coping file :' + decodeURIComponent(folder) + '/' + file);
-    var originalFile = '';
+    var originalFileGuid = '';
     switch (file.split('-')[0]) {
         case 'Notebook':
-            originalFile = 'TemplateNotebook.onetoc2';
+            // originalFile = 'TemplateNotebook.onetoc2';
+            originalFileGuid = '7d6cc7cf-2d9f-4d2c-ba71-2a6d5ef2a9d7';
             break;
         case 'SOP':
-            originalFile = 'SOP.one';
+            // originalFile = 'SOP.one';
+            originalFileGuid = '84091bc0-34d0-438e-a9f7-5ff8bcb50fcd';
             break;
         default:
             break;
     }
-    var url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/sites/CRM/Document Templates/' + originalFile + '\')/copyto(strnewurl=\'' + folder + '/' + file + '\',boverwrite=false)';
-
+    var url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/getFileById(\'' + originalFileGuid + '\')/copyto(strnewurl=\'' + folder + '/' + file + '\',boverwrite=false)';
+    //https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/sites/CRM/Document Templates/TemplateNotebook.onetoc2\')
     return $.ajax({
         method: 'POST',
         url: url,
@@ -139,21 +141,24 @@ function buildFolderTree(params) {
         entityFolderExists(url)
             .done((data) => {
                 //next
-                nextFolder(params);
+                nextFolder(params, data);
             })
             .fail((err) => {
                 //create folder
                 createEntityFolder(params.folderArr.slice(0, params.iterator).join('/'))
                     .done((data) => {
-                        nextFolder(params);
+                        nextFolder(params, data);
                     })
                     .fail((err) => {
                         spinner.updateMessage('Epic Fail Could not create folder contact IT Support');
                     })
             });
     }
-    function nextFolder(params) {
-        params.iterator += 1
+    function nextFolder(params, data) {
+        params.iterator += 1;
+        if (data.d) {
+            params.folderguid = data.d.UniqueId | null;
+        }
         if (params.iterator <= params.folderArr.length) {
             processFolder(params);
         } else {
