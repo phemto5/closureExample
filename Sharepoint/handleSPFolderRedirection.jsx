@@ -7,6 +7,7 @@ require('./handleSPFolder.html');
 var gotoSPFolder = window.gotoSPFolder || {};
 gotoSPFolder.WebAPI = gotoSPFolder.WebAPI || {};
 var params = queryStringtoObject(window.location.search);
+// console.log(params.folder);
 params.restUrl = createRestUrl(params.folder);
 params.folderUrl = 'https://wagstaffinc.sharepoint.com' + params.folder;
 params.folderArr = params.folder.split('/');
@@ -37,10 +38,12 @@ var spinner = ReactDOM.render(
 entityFolderExists(params.restUrl)
     .done((data) => {
         spinner.updateMessage("Folder Found");
+        // alert('Found the Folder');
         window.location.href = params.folderUrl;
     })
     .fail((data) => {
         spinner.updateMessage("Folder Not Found");
+        // alert('Folder Not Found!');
         params.iterator = 5;
         buildFolderTree(params);
     });
@@ -107,7 +110,7 @@ function createEntityFiles(folder, file) {
 function copyEntityFiles(folder, file) {
     spinner.updateMessage('Coping file :' + decodeURIComponent(folder) + '/' + file);
     var originalFileGuid = '';
-    switch (file.split('-')[0]) {
+    switch (file.split('.')[0]) {
         case 'Notebook':
             // originalFile = 'TemplateNotebook.onetoc2';
             originalFileGuid = '7d6cc7cf-2d9f-4d2c-ba71-2a6d5ef2a9d7';
@@ -119,7 +122,7 @@ function copyEntityFiles(folder, file) {
         default:
             break;
     }
-    var url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/getFileById(\'' + originalFileGuid + '\')/copyto(strnewurl=\'' + folder + '/' + file + '\',boverwrite=false)';
+    var url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/getFileById(\'' + originalFileGuid + '\')/copyto(strnewurl=\'' + folder + '/' + file + '\')';
     //https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/sites/CRM/Document Templates/TemplateNotebook.onetoc2\')
     return $.ajax({
         method: 'POST',
@@ -137,6 +140,7 @@ function buildFolderTree(params) {
     processFolder(params);
 
     function processFolder(params) {
+        console.log(params.folderArr.slice(0, params.iterator).join('/'))
         var url = createRestUrl(params.folderArr.slice(0, params.iterator).join('/'));
         entityFolderExists(url)
             .done((data) => {
@@ -163,18 +167,23 @@ function buildFolderTree(params) {
             processFolder(params);
         } else {
             // Last Folders
+            console.log(params);
             createEntityFolder(params.folder + '/Project Files')
                 .then((data) => {
+
                     return createEntityFolder(params.folder + '/Time Sheets-Commissioning Reports')
                 })
                 .then((data) => {
                     return createEntityFiles(params.folder, 'Do_Not_Delete.Save')
                 })
                 .then((data) => {
-                    return copyEntityFiles(params.folder, 'Notebook-' + params.folderArr[6] + '.onetoc2')
+                    // return copyEntityFiles(params.folder, 'Notebook-' + params.folderArr[6] + '.onetoc2')
+
+                    return copyEntityFiles(params.folder, 'Notebook.onetoc2')
                 })
                 .then((data) => {
-                    return copyEntityFiles(params.folder, 'SOP-' + params.folderArr[6] + '.one')
+                    // return copyEntityFiles(params.folder, 'SOP-' + params.folderArr[6] + '.one')
+                    return copyEntityFiles(params.folder, 'SOP.one')
                 })
                 .then((data) => {
                     window.location.href = params.folderUrl;
@@ -184,5 +193,6 @@ function buildFolderTree(params) {
 }
 
 function createRestUrl(folderString) {
+    // console.log(folderString);
     return 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/Web/GetFolderByServerRelativeUrl(\'' + folderString + '\')';
 }
