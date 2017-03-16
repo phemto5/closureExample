@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import $ from 'jquery';
+import * as Promise from 'promise';
 import { Spinner, SpinnerType } from 'office-ui-fabric-react/lib/Spinner'
 
 require('./handleSPFolder.html');
@@ -23,7 +24,7 @@ class Spin extends React.Component {
     }
     render() {
         return (
-            <div >
+            <div>
                 <Spinner type={SpinnerType.large} label={this.state.message} />
             </div>
         );
@@ -123,7 +124,7 @@ function copyEntityFiles(folder, file) {
             break;
     }
     var url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/getFileById(\'' + originalFileGuid + '\')/copyto(strnewurl=\'' + folder + '/' + file + '\')';
-    //https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByServerRelativeUrl(\'/sites/CRM/Document Templates/TemplateNotebook.onetoc2\')
+    //https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByID(guid'84091bc0-34d0-438e-a9f7-5ff8bcb50fcd')/copyto(strnewirl='notebook.onetoc2')
     return $.ajax({
         method: 'POST',
         url: url,
@@ -167,28 +168,53 @@ function buildFolderTree(params) {
             processFolder(params);
         } else {
             // Last Folders
-            console.log(params);
-            createEntityFolder(params.folder + '/Project Files')
-                .then((data) => {
+            var next;
+            switch (true) {
+                case (params.ProjectID != 'undefined'):
+                    next = handelProjects(params.folder);
+                    break;
 
-                    return createEntityFolder(params.folder + '/Time Sheets-Commissioning Reports')
-                })
-                .then((data) => {
-                    return createEntityFiles(params.folder, 'Do_Not_Delete.Save')
-                })
-                .then((data) => {
-                    // return copyEntityFiles(params.folder, 'Notebook-' + params.folderArr[6] + '.onetoc2')
+                case (params.OpportunityID != 'undefined'):
+                    next = handelOpportunity(params.folder);
+                    break;
 
-                    return copyEntityFiles(params.folder, 'Notebook.onetoc2')
-                })
-                .then((data) => {
-                    // return copyEntityFiles(params.folder, 'SOP-' + params.folderArr[6] + '.one')
-                    return copyEntityFiles(params.folder, 'SOP.one')
-                })
-                .then((data) => {
-                    window.location.href = params.folderUrl;
-                })
+                case (params.AccountID != 'undefined'):
+                    next = handelAccount(params.folder);
+                    break;
+
+                case defalut:
+                    break;
+            }
+            return next.then((folder) => {
+                window.location.href = params.folderUrl;;
+            });
         }
+    }
+    function handelProjects(folder) {
+        return createEntityFolder(folder + '/Project Files')
+            .then((data) => {
+                return createEntityFolder(folder + '/Time Sheets-Commissioning Reports')
+            })
+            .then((data) => {
+                return createEntityFiles(folder, 'Do_Not_Delete.Save')
+            })
+            .then((data) => {
+                // return copyEntityFiles(params.folde, 'Notebook-' + params.folderArr[6] + '.onetoc2')
+                return copyEntityFiles(folder, 'Notebook.onetoc2')
+            })
+            .then((data) => {
+                // return copyEntityFiles(params.folder, 'SOP-' + params.folderArr[6] + '.one')
+                return copyEntityFiles(folder, 'SOP.one')
+            })
+            .then((data) => {
+                return Promise.resolve(folder);
+            })
+    }
+    function handelOpportunity(folder) {
+        return Promise.resolve(folder);
+    }
+    function handelAccount(folder) {
+        return Promise.resolve(folder);
     }
 }
 

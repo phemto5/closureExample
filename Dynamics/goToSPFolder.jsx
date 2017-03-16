@@ -10,7 +10,7 @@ var gotoSPFolder = window.gotoSPFolder || {};
 gotoSPFolder.WebAPI = gotoSPFolder.WebAPI || {};
 var goButton;
 
-class GoButton extends React.Component<IButtonProps, {}> {
+class GoButton extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -46,19 +46,19 @@ $(document).ready(() => {
         document.getElementById('root')
     );
 
-    getEntity(getURL()).then((data) => {
-        if (data['@odata.etag']) {
-            goButton.updateDescription(data.new_name);
-            goButton.updateDisabled(false);
-            // console.log('GotData')
-            // console.log(data);
-        } else {
-            goButton.updateDescription('Must Refresh Page after saving to get to folders.');
-            goButton.updateDisabled(true);
-            console.log('GotNoData')
-        }
+    getEntity(getDynamicsEntityUrl())
+        .then(
+        (data) => {
+            if (data['@odata.etag']) {
+                goButton.updateDescription(sanatizePunctuation(data.new_name || data.name));
+                goButton.updateDisabled(false);
+            } else {
+                goButton.updateDescription('Must Refresh Page after saving to get to folders.');
+                goButton.updateDisabled(true);
+                console.log('GotNoData')
+            }
 
-    })
+        })
         .fail(() => {
             console.log('Failed ajax;')
         });
@@ -68,7 +68,7 @@ $(document).ready(() => {
 function goToEntity() {
     var parts = {};
     parts.query = queryStringtoObject(window.location.search);
-    getEntity(getURL())
+    getEntity(getDynamicsEntityUrl())
         .then((data) => {
             parts.entity = data;
             return getAccount(data);
@@ -78,7 +78,11 @@ function goToEntity() {
         })
         .then((data) => {
             parts.account = data;
-            parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + sanatizePunctuation(parts.account.name) + '/' + parts.query.typename + '/' + sanatizePunctuation(parts.entity.new_name) + '&ProjectID=' + parts.entity.new_projectactivitiesid;
+            parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + sanatizePunctuation(parts.account.name);
+            if (!parts.entity.accountid) {
+                parts.folderURL += '/' + parts.query.typename + '/' + sanatizePunctuation(parts.entity.new_name || parts.entity.name);
+            }
+            parts.folderURL += '&ProjectID=' + parts.entity.new_projectactivitiesid + '&OpportunityID=' + parts.entity.opportunityid + '&AccountID=' + parts.entity.accountid;
             window.open(parts.folderURL);
         }).fail((err) => {
             console.log('foldernnotfound');
@@ -102,7 +106,7 @@ function queryStringtoObject(search) {
 
     return p;
 }
-function getURL() {
+function getDynamicsEntityUrl() {
     var url = ''
     var q = queryStringtoObject(window.location.search);
     if (q.typename) {
@@ -129,7 +133,7 @@ function getURL() {
     return url;
 }
 
-function getEntity(_url = getURL()) {
+function getEntity(_url = getDynamicsEntityUrl()) {
     return $.ajax(
         {
             url: _url,
@@ -140,7 +144,7 @@ function getEntity(_url = getURL()) {
 }
 function getAccount(data) {
     var win = window.location;
-    var _url = win.protocol + "//" + win.hostname + "/api/data/v8.1/accounts(" + data._new_account_value + ")";
+    var _url = win.protocol + "//" + win.hostname + "/api/data/v8.1/accounts(" + (data._new_account_value || data._parentaccountid_value || data.accountid) + ")";
     return $.ajax({
         url: _url,
         method: 'GET',
@@ -171,6 +175,7 @@ function sanatizePunctuation(str) {
         .replace(/\_/g, '-')
         .replace(/\+/g, '-')
         .replace(/\=/g, '-')
+        .replace(/\"/g, '_')
     return t;
 
 
