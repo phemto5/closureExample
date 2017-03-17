@@ -170,24 +170,23 @@ function buildFolderTree(params) {
             // Last Folders
             var next;
             switch (true) {
-                case (params.ProjectID != 'undefined' && params.ProjectID != undefined):
-                    console.log(params.ProjectID);
-                    next = handelProjects(params.folder);
-                    break;
-
-                case (params.OpportunityID != 'undefined' && params.OpportunityID != undefined):
-                    console.log(params.OpportunityID);
-                    next = handelOpportunity(params.folder);
-                    break;
-
-                case (params.AccountID != 'undefined' && params.AccountID != undefined):
-                    console.log(params.AccountID);
-                    next = handelAccount(params.folder);
-                    break;
                 case (params.PACRequestID != 'undefined' && params.PACRequestID != undefined):
                     console.log(params.PACRequestID);
                     next = handelPACRequest(params.folder);
                     break;
+                case (params.ProjectID != 'undefined' && params.ProjectID != undefined):
+                    console.log(params.ProjectID);
+                    next = handelProjects(params.folder);
+                    break;
+                case (params.OpportunityID != 'undefined' && params.OpportunityID != undefined):
+                    console.log(params.OpportunityID);
+                    next = handelOpportunity(params.folder);
+                    break;
+                case (params.AccountID != 'undefined' && params.AccountID != undefined):
+                    console.log(params.AccountID);
+                    next = handelAccount(params.folder);
+                    break;
+
                 case defalut:
                     console.log('Default')
                     break;
