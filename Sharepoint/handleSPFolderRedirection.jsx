@@ -170,19 +170,26 @@ function buildFolderTree(params) {
             // Last Folders
             var next;
             switch (true) {
-                case (params.ProjectID != 'undefined'):
+                case (params.ProjectID != 'undefined' && params.ProjectID != undefined):
+                    console.log(params.ProjectID);
                     next = handelProjects(params.folder);
                     break;
 
-                case (params.OpportunityID != 'undefined'):
+                case (params.OpportunityID != 'undefined' && params.OpportunityID != undefined):
+                    console.log(params.OpportunityID);
                     next = handelOpportunity(params.folder);
                     break;
 
-                case (params.AccountID != 'undefined'):
+                case (params.AccountID != 'undefined' && params.AccountID != undefined):
+                    console.log(params.AccountID);
                     next = handelAccount(params.folder);
                     break;
-
+                case (params.PACRequestID != 'undefined' && params.PACRequestID != undefined):
+                    console.log(params.PACRequestID);
+                    next = handelPACRequest(params.folder);
+                    break;
                 case defalut:
+                    console.log('Default')
                     break;
             }
             return next.then((folder) => {
@@ -191,7 +198,9 @@ function buildFolderTree(params) {
         }
     }
     function handelProjects(folder) {
-        return createEntityFolder(folder + '/Project Files')
+        return Promise.resolve(() => {
+            return createEntityFolder(folder + '/Project Files')
+        })
             .then((data) => {
                 return createEntityFolder(folder + '/Time Sheets-Commissioning Reports')
             })
@@ -216,6 +225,12 @@ function buildFolderTree(params) {
     function handelAccount(folder) {
         return Promise.resolve(folder);
     }
+    function handelRACRequest(folder) {
+        return Promise.resolve(() => {
+            return createEntityFiles(folder, PACRequest.docx);
+        });
+    }
+
 }
 
 function createRestUrl(folderString) {
