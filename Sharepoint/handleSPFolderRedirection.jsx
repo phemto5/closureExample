@@ -223,10 +223,10 @@ function buildFolderTree(params) {
         return Promise.resolve(folder);
     }
     function handelPACRequest(folder) {
-        return createEntityFiles(folder, 'PACRequest.docx')
-            .then((data) => {
-                return Promise.resolve(folder);
-            })
+        // return createEntityFiles(folder, 'PACRequest.docx')
+        // .then((data) => {
+        return Promise.resolve(folder);
+        // })
     }
 
 }
