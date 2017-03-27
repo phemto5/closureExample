@@ -8,7 +8,6 @@ require('./handleSPFolder.html');
 var gotoSPFolder = window.gotoSPFolder || {};
 gotoSPFolder.WebAPI = gotoSPFolder.WebAPI || {};
 var params = queryStringtoObject(window.location.search);
-// console.log(params.folder);
 params.restUrl = createRestUrl(params.folder);
 params.folderUrl = 'https://wagstaffinc.sharepoint.com' + params.folder;
 params.folderArr = params.folder.split('/');
@@ -56,7 +55,7 @@ function queryStringtoObject(search) {
     vars.forEach(function (element) {
         var name = element.split('=')[0];
         var value = decodeURI(element.split('=')[1]);
-        p[name] = value.replace('.', '');
+        p[name] = value.replace(/\./gi, '');
     }, this);
     return p;
 }
@@ -96,7 +95,7 @@ function createEntityFolder(_folder) {
 
 function createEntityFiles(folder, file) {
     spinner.updateMessage('Creating file :' + folder + '/' + file);
-    let _url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
+    let _url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFolderByServerRelativeUrl(\'' + folder.replace(/\'/gi, '\'\'') + '\')/Files/add(url=\'' + file + '\',overwrite=true)'
     return $.ajax({
         method: 'POST',
         url: _url,
@@ -123,7 +122,7 @@ function copyEntityFiles(folder, file) {
         default:
             break;
     }
-    var url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/getFileById(\'' + originalFileGuid + '\')/copyto(strnewurl=\'' + folder + '/' + file + '\')';
+    var url = 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/getFileById(\'' + originalFileGuid + '\')/copyto(strnewurl=\'' + folder.replace(/\'/gi, '\'\'') + '/' + file + '\')';
     //https://wagstaffinc.sharepoint.com/sites/CRM/_api/web/GetFileByID(guid'84091bc0-34d0-438e-a9f7-5ff8bcb50fcd')/copyto(strnewirl='notebook.onetoc2')
     return $.ajax({
         method: 'POST',
@@ -233,5 +232,5 @@ function buildFolderTree(params) {
 
 function createRestUrl(folderString) {
     // console.log(folderString);
-    return 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/Web/GetFolderByServerRelativeUrl(\'' + folderString + '\')';
+    return 'https://wagstaffinc.sharepoint.com/sites/CRM/_api/Web/GetFolderByServerRelativeUrl(\'' + folderString.replace(/\'/gi, '\'\'') + '\')';
 }

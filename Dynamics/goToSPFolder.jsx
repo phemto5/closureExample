@@ -78,9 +78,9 @@ function goToEntity() {
         })
         .then((data) => {
             parts.account = data;
-            parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + sanatizePunctuation(parts.account.name);
+            parts.folderURL = 'https://wagstaffinc.sharepoint.com/sites/CRM/SitePages/handelSPFolder.aspx?folder=/sites/CRM/account/' + encodeURIComponent(sanatizePunctuation(parts.account.name));
             if (!parts.entity.accountid) {
-                parts.folderURL += '/' + parts.query.typename + '/' + sanatizePunctuation(parts.entity.new_name || parts.entity.name);
+                parts.folderURL += '/' + parts.query.typename + '/' + encodeURIComponent(sanatizePunctuation(parts.entity.new_name || parts.entity.name));
             }
             parts.folderURL += '&ProjectID=' + parts.entity.new_projectactivitiesid + '&OpportunityID=' + parts.entity.opportunityid + '&AccountID=' + parts.entity.accountid;
             window.open(parts.folderURL);
@@ -154,28 +154,7 @@ function getAccount(data) {
 
 function sanatizePunctuation(str) {
     var t = str
-        .replace(/\//g, '-')
-        .replace(/\</g, '-')
-        .replace(/\>/g, '-')
-        .replace(/\./g, '-')
-        .replace(/\?/g, '-')
-        .replace(/\\/g, '-')
-        .replace(/\,/g, '-')
-        .replace(/\;/g, '-')
-        .replace(/\:/g, '-')
-        .replace(/\|/g, '-')
-        .replace(/\!/g, '-')
-        .replace(/\@/g, '-')
-        .replace(/\#/g, '-')
-        .replace(/\$/g, '-')
-        .replace(/\%/g, '-')
-        .replace(/\^/g, '-')
-        .replace(/\&/g, '-')
-        .replace(/\*/g, '-')
-        .replace(/\_/g, '-')
-        .replace(/\+/g, '-')
-        .replace(/\=/g, '-')
-        .replace(/\"/g, '_')
+        .replace(/[\/\<\>\.\?\\\,\:\;\|\!\#\$\%\^\&\*\_\=\+\"]/g, '-');
     return t;
 
 
